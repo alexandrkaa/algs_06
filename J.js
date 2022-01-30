@@ -62,44 +62,16 @@ class FileSystem {
 }
 
 const vResult = [];
-let time = 0;
-
-function dfs(graph, from = 1, visited = []) {
-  visited[from] = true;
-  if (graph[from] !== undefined) {
-    // vResult.push(from);
-    vResult[from - 1] = [];
-    vResult[from - 1].push(time);
-    time += 1;
-  }
-  let len;
-  try {
-    len = graph[from].length;
-  } catch (err) {
-    len = 0;
-  }
-  for (let i = 0; i < len; i++) {
-    if (!visited[graph[from][i]]) {
-      dfs(graph, graph[from][i], visited);
-    }
-  }
-  if (graph[from] !== undefined) {
-    vResult[from - 1].push(time);
-    time += 1;
-  }
-}
 
 function solve() {
   const myFS = new FileSystem();
-  myFS.readData(`H.txt`);
+  myFS.readData();
   const [V, E] = myFS.readArray(myFS.readLine());
   // let line;
   const arr = [];
   while (myFS.curLine < myFS.inputLines.length) {
     arr.push(myFS.readArray(myFS.readLine()));
   }
-  // const num = myFS.readInt();
-  // console.log(V, E, arr);
 
   const result = new Array(V).fill().map(() => []);
 
@@ -110,12 +82,38 @@ function solve() {
       result[arr[i][0] - 1] = [arr[i][1]];
     }
   }
-  result.map((it) => it.sort((a, b) => a - b));
+  // result.map((it) => it.sort((a, b) => a - b));
   result.unshift(undefined);
+
+  // white - 0
+  // grey - 1
+  // black - 2
+  const color = new Array(V + 1).fill().map((it) => 0);
+  const order = []; // дб стек и вывод в обратном порядке, поэтому в решении reverse
+
+  function TopSort(graph, v) {
+    color[v] = 1;
+
+    for (let i = 0; i < graph[v].length; i++) {
+      let w = graph[v][i];
+      if (color[w] == 0) {
+        TopSort(graph, w);
+      }
+    }
+    color[v] = 2;
+    order.push(v);
+  }
+
+  function MainTopSort(graph) {
+    for (let i = 1; i < graph.length; i++) {
+      if (color[i] == 0) {
+        TopSort(graph, i);
+      }
+    }
+  }
   // console.log(result);
-  dfs(result);
-  // console.log(vResult);
-  console.log(vResult.map((it) => it.join(` `)).join(`\n`));
+  MainTopSort(result);
+  console.log(order.reverse().join(` `));
 }
 
 solve();
